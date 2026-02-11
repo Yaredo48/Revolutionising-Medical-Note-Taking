@@ -1,0 +1,104 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: ai-platform-postgres
+    environment:
+      POSTGRES_DB: ai_platform
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for caching and rate limiting
+  redis:
+    image: redis:7-alpine
+    container_name: ai-platform-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # AI Service Platform API
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-platform-api
+    environment:
+      - AI_PLATFORM_ENV=production
+      - AI_PLATFORM_DEBUG=false
+      - AI_PLATFORM_DATABASE__HOST=postgres
+      - AI_PLATFORM_DATABASE__PORT=5432
+      - AI_PLATFORM_DATABASE__NAME=ai_platform
+      - AI_PLATFORM_DATABASE__USER=postgres
+      - AI_PLATFORM_DATABASE__PASSWORD=postgres
+      - AI_PLATFORM_REDIS__HOST=redis
+      - AI_PLATFORM_REDIS__PORT=6379
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/data/uploads
+    restart: unless-stopped
+
+  # Celery worker for background tasks
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-platform-worker
+    command: ["celery", "-A", "src.tasks", "worker", "-l", "info"]
+    environment:
+      - AI_PLATFORM_ENV=production
+      - AI_PLATFORM_DATABASE__HOST=postgres
+      - AI_PLATFORM_REDIS__HOST=redis
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/data/uploads
+
+  # Redis Queue monitor (optional)
+  flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai-platform-flower
+    command: ["celery", "-A", "src.tasks", "flower"]
+    ports:
+      - "5555:5555"
+    environment:
+      - AI_PLATFORM_REDIS__HOST=redis
+    depends_on:
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  redis_data:
+  uploads_data:
+
+networks:
+  default:
+    name: ai-platform-network

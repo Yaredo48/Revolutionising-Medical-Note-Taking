@@ -116,7 +116,7 @@ class Document(Base):
     status = Column(SQLEnum(DocumentStatus), default=DocumentStatus.PENDING)
     chunk_count = Column(Integer, default=0)
     vector_count = Column(Integer, default=0)
-    metadata = Column(JSON, default=dict)
+    doc_metadata = Column(JSON, default=dict)
     processing_error = Column(Text, nullable=True)
     created_by_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     

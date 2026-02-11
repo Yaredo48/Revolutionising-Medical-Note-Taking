@@ -1,13 +1,11 @@
-#fastapi
+fastapi
 uvicorn
 pandas
 numpy
 PyPDF2
 beautifulsoup4
-sentence-transformers
-transformers
-pinecone
+#sentence-transformers
+#transformers
+#pinecone
 #torch
 python-dotenv
-django 
-djangorestframework

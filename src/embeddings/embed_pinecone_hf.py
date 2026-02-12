@@ -4,7 +4,6 @@ import numpy as np
 from dotenv import load_dotenv
 from huggingface_hub import InferenceClient
 from pinecone import Pinecone, ServerlessSpec
-from src.embeddings.chunker import load_and_chunk
 
 load_dotenv()
 

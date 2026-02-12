@@ -26,7 +26,7 @@ Sources:
         inputs=prompt, 
         parameters={"max_new_tokens": 200}
     )
-    return response[0]["generated_text"]  # Hugging Face API returns a list
+    return response  # text_generation returns a string directly
 
 if __name__ == "__main__":
     test_query = "Patient with fever, cough, and sore throat"

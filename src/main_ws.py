@@ -1,9 +1,9 @@
 import os
 import asyncio
 from fastapi import FastAPI, WebSocket
-from src.speech.stt_hf import transcribe_audio
-from src.rag.retriever import retrieve_chunks
-from src.rag.summarizer_hf import summarize_chunks
+from speech.stt_hf import transcribe_audio
+from rag.retriever import retrieve_chunks
+from rag.summarizer_hf import summarize_chunks
 
 app = FastAPI(title="Medical RAG Streaming API")
 
